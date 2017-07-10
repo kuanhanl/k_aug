@@ -53,6 +53,8 @@ void assemble_corrector_rhs_v2(ASL *asl, real *x, real *lambda,
 	}
 	assert(*nerror == 0);
 
+	printf("nerror %d\n", *nerror);
+
 	/* get gradient of f */
 	rhs = (real *)malloc(sizeof(real) * (nvar));
 	objgrd(0, x, rhs, nerror);
@@ -60,6 +62,7 @@ void assemble_corrector_rhs_v2(ASL *asl, real *x, real *lambda,
 		fprintf(stderr, "Error in the evaluation of the Gradient of the objective. \n");
 	}
 	assert(*nerror == 0);
+	printf("nerror %d\n", *nerror);
 	/* get constraint body */
 	rhs_con = (real *)malloc(sizeof(real) * (ncon));
 	conval(x, rhs_con, nerror);
@@ -81,7 +84,7 @@ void assemble_corrector_rhs_v2(ASL *asl, real *x, real *lambda,
 	for(i = 0; i<(nvar); i++){
 		rhs_full[i] = -rhs[i];
 	}
-
+	somefile = fopen("con_body.txt", "w");
 	j = 0;
 	for(i = nvar; i<(nvar + ncon); i++){
 		/* rhs_full[i] = rhs_con[j]; */
@@ -98,9 +101,11 @@ void assemble_corrector_rhs_v2(ASL *asl, real *x, real *lambda,
 			/* rhs_full[i] += -LUrhs[2*j]; */
 			rhs_full[i] += LUrhs[2*j];
 		}
+		fprintf(somefile, "\t%f\n", rhs_full[j]);
 		
 		j++;
 	}
+	fclose(somefile);
 	somefile = fopen("rhs_corrector_unscaled.txt", "w");
 
 	for(i=0; i<(nvar + ncon); i++){

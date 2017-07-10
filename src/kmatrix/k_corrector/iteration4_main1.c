@@ -357,7 +357,7 @@ int main(int argc, char **argv){
 	nerror = 0;
 	printf("I[KMATRIX]...\t[KMATRIX_ASL]"
 		"Nonzeroes in the sparse Jacobian %d\n", nzc);
-
+	xknown(x);
 	get_jac_asl_aug (asl, x, Acol, Arow, Aij, n_var, n_con, nzc, &nerror, &nz_row_a);
 	get_hess_asl_aug(asl, x, &Wcol, &Wrow, &Wij, n_var, n_con, n_obj,
 	 &nnzw, lambda, &nerror, &nz_row_w, &md_off_w, &miss_nz_w);
@@ -416,6 +416,7 @@ int main(int argc, char **argv){
   if(_x2->u.r){
   	for(i=0; i<n_var; i++){
   		x[i] = _x2->u.r[i];
+  		xknown(x);
   	}
     fprintf(stderr, "E[KMATRIX]...\t[KMATRIX_ASL]"
     	"updated primal variables!\n");
