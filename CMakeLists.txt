@@ -37,7 +37,7 @@ else(USE_MC30)
     file(GLOB SOURCES "src/k_aug/*.c" "src/matrix/*.c" "src/interfaces/mumps/*.c" "src/interfaces/hsl/*.c")
 endif(USE_MC30)
 
-add_executable(k_aug ${SOURCES})
+add_executable(k_aug ${SOURCES} src/k_aug/k_aug_data.c)
 
 
 if (USE_MC30)

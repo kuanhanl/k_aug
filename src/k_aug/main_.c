@@ -232,6 +232,9 @@ int main(int argc, char **argv){
     int *vModJac = NULL, *cModJac = NULL;
     double logmu0;
 
+    /* nlp info */
+    nlp_info nlp_i = {.n = 0, .m = 0, .m_e = 0, .m_i = 0, .m_gl = 0, .m_gu = 0, .n_slack = 0, .len_active_bnd = 0};
+
     /* inertia data-structures */
     inertia_params inrt_parms;
     inertia_options inrt_opts;
@@ -328,6 +331,9 @@ int main(int argc, char **argv){
         fprintf(stderr, "W[K_AUG]...\t[K_AUG_ASL]"
                         "Dot product preparation.\n");
     }
+
+    nlp_i.n = n_var;
+    nlp_i.m = n_con;
 
 
     /* Allocate suffix names (regular)*/
@@ -547,8 +553,9 @@ int main(int argc, char **argv){
 
     c_flag = (int *)malloc(sizeof(int) * n_con); /* Flags for ineq or equalities*/
 
-    /*constraints flags */
+    /*constraintskind*/
     find_ineq_con(n_con, LUrhs, c_flag); /* Find the inequality constraints */
+
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */

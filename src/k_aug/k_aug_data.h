@@ -1,9 +1,20 @@
 /*
-// Created by dav0 on 4/24/18.
+  Created by dav0 on 4/24/18.
 */
 
 #ifndef K_AUG_DATA_H
 #define K_AUG_DATA_H
+
+typedef struct nlp_info{
+    int n;
+    int m;
+    int m_e;
+    int m_i;
+    int m_gl;
+    int m_gu;
+    int n_slack;
+    int len_active_bnd;
+} nlp_info;
 
 typedef struct inertia_strategy_params{
     double km;
