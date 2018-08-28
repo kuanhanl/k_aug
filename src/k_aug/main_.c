@@ -554,8 +554,7 @@ int main(int argc, char **argv){
     c_flag = (int *)malloc(sizeof(int) * n_con); /* Flags for ineq or equalities*/
 
     /*constraintskind*/
-    find_ineq_con(n_con, LUrhs, c_flag); /* Find the inequality constraints */
-
+    find_ineq_con(n_con, LUrhs, c_flag, &nlp_i.m_gl, &nlp_i.m_gu); /* Find the inequality constraints */
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */

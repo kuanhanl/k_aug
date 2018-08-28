@@ -3,7 +3,7 @@
 
 #include "../../thirdparty/asl/solvers/asl.h"
 
-void find_ineq_con(fint ncon_,real *LBC, int *c_flag);
+void find_ineq_con(fint ncon_,real *LBC, int *c_flag, int *ngl, int *ngu);
 void find_bounds  (fint nvar_,real *lbv);
 
 
