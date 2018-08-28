@@ -232,6 +232,9 @@ int main(int argc, char **argv){
     int *vModJac = NULL, *cModJac = NULL;
     double logmu0;
 
+    /* Inequalities space */
+    int n_ineq = 0;
+
     /* nlp info */
     nlp_info nlp_i = {.n = 0, .m = 0, .m_e = 0, .m_i = 0, .m_gl = 0, .m_gu = 0, .n_slack = 0, .len_active_bnd = 0};
 
@@ -555,6 +558,11 @@ int main(int argc, char **argv){
 
     /*constraintskind*/
     find_ineq_con(n_con, LUrhs, c_flag, &nlp_i.m_gl, &nlp_i.m_gu); /* Find the inequality constraints */
+
+    /* The number of inequality constraints is equal to the number of slacks */
+    n_ineq = nlp_i.m_gl + nlp_i.m_gu;
+    nlp_i.n_slack = n_ineq;
+
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */
