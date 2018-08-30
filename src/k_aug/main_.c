@@ -33,7 +33,7 @@
 #include "../interfaces/mumps/mumps_driver.h"
 #include "get_jac_asl_aug.h"
 #include "get_hess_asl_aug.h"
-#include "find_inequalities.h"
+#include "con_check.h"
 #include "assemble_rhs_rh.h"
 #include "assemble_rhs_dcdp.h"
 #include "suffix_decl_hand.h"
@@ -42,7 +42,7 @@
 #include "mu_adjust_primal.h"
 #include "../matrix/dsyev_driver.h"
 #include "../matrix/dpotri_driver.h"
-
+#include "slacked_grad.h"
 
 #include "k_aug_data.h"
 #include "config_kaug.h"
@@ -234,9 +234,14 @@ int main(int argc, char **argv){
 
     /* Inequalities space */
     int n_ineq = 0;
+    real *J = NULL;
+    real *grd_c = NULL;
+    cgrad *Cg;
+    int n_d_ineq = 0;
+    int n_d_nz = 0;
 
     /* nlp info */
-    nlp_info nlp_i = {.n = 0, .m = 0, .m_e = 0, .m_i = 0, .m_gl = 0, .m_gu = 0, .n_slack = 0, .len_active_bnd = 0};
+    nlp_info nlp_i = {.n = 0, .m = 0, .m_eq = 0, .m_i = 0, .m_gl = 0, .m_gu = 0, .n_slack = 0, .len_active_bnd = 0};
 
     /* inertia data-structures */
     inertia_params inrt_parms;
@@ -335,8 +340,6 @@ int main(int argc, char **argv){
                         "Dot product preparation.\n");
     }
 
-    nlp_i.n = n_var;
-    nlp_i.m = n_con;
 
 
     /* Allocate suffix names (regular)*/
@@ -369,12 +372,6 @@ int main(int argc, char **argv){
         suffix_decl_hand(suf_ptr, reg_suffix_name, rhs_name, n_r_suff, n_rhs);
     }
 
-
-    printf("I[K_AUG]...\t[K_AUG_ASL]"
-           "Number of Right hand sides %d\n", n_rhs);
-
-
-
     /* Declare suffixes */
     if(n_rhs > 0){suf_declare(suf_ptr, (n_rhs + n_r_suff));}
     else{suf_declare(suf_ptr, n_r_suff);}
@@ -383,6 +380,8 @@ int main(int argc, char **argv){
     /* dhis bit setups ASL components e.g. n_var, n_con, etc. */
     f = jac0dim(s, (fint)strlen(s));
 
+    nlp_i.n = n_var;
+    nlp_i.m = n_con;
 
     printf("I[K_AUG]...\t[K_AUG_ASL]"
            "Number of Right hand sides: %d\n", n_rhs);
@@ -553,15 +552,61 @@ int main(int argc, char **argv){
             }
         }
     }
-
-    c_flag = (int *)malloc(sizeof(int) * n_con); /* Flags for ineq or equalities*/
-
+    printf("nlp_i.m %d\n", nlp_i.m);
+    nlp_i.con_flag = (int *) malloc(sizeof(int) * n_con); /* Flags for ineq or equalities*/
+    nlp_i.eq_c = (int *) malloc(sizeof(int) * n_con);
+    nlp_i.gl_c = (int *) malloc(sizeof(int) * n_con);
+    nlp_i.gu_c = (int *) malloc(sizeof(int) * n_con);
+    nlp_i.glu_c = (int *) malloc(sizeof(int) * n_con);
+    printf("nlp_i.m %d\n", nlp_i.m);
     /*constraintskind*/
-    find_ineq_con(n_con, LUrhs, c_flag, &nlp_i.m_gl, &nlp_i.m_gu); /* Find the inequality constraints */
+    con_check(n_con, LUrhs, &nlp_i); /* Find the inequality constraints */
+
 
     /* The number of inequality constraints is equal to the number of slacks */
     n_ineq = nlp_i.m_gl + nlp_i.m_gu;
     nlp_i.n_slack = n_ineq;
+
+    for (j = 0; j < n_con; j++) {
+        if (nlp_i.con_flag[j] == -1 && Cgrad) {
+            for (Cg = Cgrad[j]; Cg; Cg = Cg->next) {
+                n_d_nz++;
+            }
+        }
+    }
+
+    printf("Required nz %d\n", n_d_nz);
+    printf("constraints %d\n", nlp_i.m);
+    printf("constraints equality %d\n", nlp_i.m_eq);
+
+    for (j = 0; j < nlp_i.m; j++) {
+        printf("con_flag %d\t%d\n", j, nlp_i.con_flag[j]);
+    }
+
+    for (j = 0; j < nlp_i.m_eq; j++) {
+        printf("m_eq at %d\n", nlp_i.eq_c[j]);
+    }
+
+    for (j = 0; j < nlp_i.m_gl; j++) {
+        printf("m_gl at %d\n", nlp_i.gl_c[j]);
+    }
+
+    for (j = 0; j < nlp_i.m_gu; j++) {
+        printf("m_gu at %d\n", nlp_i.gu_c[j]);
+    }
+
+    for (j = 0; j < nlp_i.m_glu; j++) {
+        printf("m_glu at %d\n", nlp_i.glu_c[j]);
+    }
+
+
+    free(nlp_i.con_flag);
+    free(nlp_i.eq_c);
+    free(nlp_i.gl_c);
+    free(nlp_i.gu_c);
+    free(nlp_i.glu_c);
+
+    slacked_grad(asl, &nlp_i, x, Acol, Arow, Aij);
 
 
     /* Row and column for the triplet format A matrix */
@@ -659,7 +704,7 @@ int main(int argc, char **argv){
         solve_result_num = 0;
         write_sol(ter_msg, x, lambda, &Oinfo);
         ASL_free(&asl);
-        free(c_flag);
+
         free(z_L);
         free(z_U);
         free(sigma);

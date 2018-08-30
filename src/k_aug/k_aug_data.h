@@ -8,12 +8,18 @@
 typedef struct nlp_info{
     int n;
     int m;
-    int m_e;
+    int m_eq;
     int m_i;
     int m_gl;
     int m_gu;
+    int m_glu;
     int n_slack;
     int len_active_bnd;
+    int *eq_c;
+    int *gl_c;
+    int *gu_c;
+    int *glu_c;
+    int *con_flag;
 } nlp_info;
 
 typedef struct inertia_strategy_params{

@@ -2,8 +2,9 @@
 #define FIND_INEQ_CON
 
 #include "../../thirdparty/asl/solvers/asl.h"
+#include "k_aug_data.h"
 
-void find_ineq_con(fint ncon_,real *LBC, int *c_flag, int *ngl, int *ngu);
+void con_check(fint ncon_, real *LBC, nlp_info *nlp_i);
 void find_bounds  (fint nvar_,real *lbv);
 
 

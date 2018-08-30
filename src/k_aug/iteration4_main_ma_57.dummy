@@ -26,7 +26,7 @@
 #include "ma57_driver.h"
 #include "get_jac_asl_aug.h"
 #include "get_hess_asl_aug.h"
-#include "find_inequalities.h"
+#include "con_check.h"
 #include "assemble_rhs_rh.h"
 #include "suffix_decl_hand.h"
 #include "csr_driver.h"

@@ -28,7 +28,7 @@
 #include "../interfaces/mumps/mumps_driver.h"
 #include "get_jac_asl_aug.h"
 #include "get_hess_asl_aug.h"
-#include "find_inequalities.h"
+#include "con_check.h"
 #include "assemble_rhs_rh.h"
 #include "assemble_rhs_dcdp.h"
 #include "suffix_decl_hand.h"
