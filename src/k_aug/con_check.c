@@ -21,19 +21,19 @@
 *******************************************************************************/
 
 #include "con_check.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <float.h>
-#include <assert.h>
 
 
 void con_check(fint ncon_, real *LBC, nlp_info *nlp_i) {
-    int i;
+    int i, j, s = 0;
     int geq_con, leq_con, eq_con, n_double;
     geq_con = 0;
     leq_con = 0;
     eq_con = 0;
     n_double = 0;
+    int *si = NULL;
+
+    si = (int *) malloc(sizeof(int) * nlp_i->m);
+
     /* Inequality cases for general form gl <= g(x) <= gu:
      * 299  gl < -inf, and gu <= inf (ERROR)
      * 3    gl = gu (Equalitity)
@@ -64,16 +64,24 @@ void con_check(fint ncon_, real *LBC, nlp_info *nlp_i) {
                 nlp_i->glu_c[n_double] = i;
                 n_double++;
                 nlp_i->con_flag[i] = -1;
+                si[s] = i;
+                s++;
+                /*si[s] = i;
+                s++;*/
             }
         } else if (LBC[2 * i] <= -1e300) {
             nlp_i->gl_c[leq_con] = i;
             leq_con++;
             nlp_i->con_flag[i] = 1;
+            si[s] = i;
+            s++;
             /*if(LBC[2*i+1]!=0.0){nlp_i->con_flag[i] = -1;}*/
         } else if (LBC[2 * i + 1] >= 1e300) {
             nlp_i->gu_c[geq_con] = i;
             geq_con++;
             nlp_i->con_flag[i] = 2;
+            si[s] = i;
+            s++;
             /*if(LBC[2*i]!=0.0){nlp_i->con_flag[i] = -2;}*/
         } else {
             /* Invalid case */
@@ -90,6 +98,21 @@ void con_check(fint ncon_, real *LBC, nlp_info *nlp_i) {
         printf("I[K_AUG]...\t[FIND_INEQ]"
                "Summary: eq: %d\t, leq: %d\t, geq: %d\n", eq_con, leq_con, geq_con);
     }
+    /* nlp_i->slack_i = (int *)malloc(sizeof(int) * (s + n_double)); */
+    nlp_i->slack_i = (int *) malloc(sizeof(int) * (s + n_double));
+    for (i = 0; i < s; i++) {
+        nlp_i->slack_i[i] = si[i];
+    }
+
+    for (i = 0; i < n_double; i++) {
+        j = nlp_i->glu_c[i];
+        nlp_i->slack_i[s + i] = j;
+    }
+
+    for (i = 0; i < (s + n_double); i++) {
+        printf("slack %d\t%d\n", i, nlp_i->slack_i[i]);
+    }
+
     nlp_i->m_eq = eq_con;
     nlp_i->m_gl = leq_con;
     nlp_i->m_gu = geq_con;

@@ -21,35 +21,15 @@
 ** @param [r] KWs
 ** @@
 *******************************************************************************/
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-#include <time.h>
-#include <string.h>
 #include "../../thirdparty/asl/solvers/getstub.h"
-#include "../../thirdparty/asl/solvers/asl.h"
 
 #include "../interfaces/mumps/mumps_driver.h"
-#include "get_jac_asl_aug.h"
-#include "get_hess_asl_aug.h"
-#include "con_check.h"
-#include "assemble_rhs_rh.h"
-#include "assemble_rhs_dcdp.h"
-#include "suffix_decl_hand.h"
-#include "csr_driver.h"
-#include "sigma_compute.h"
-#include "mu_adjust_primal.h"
-#include "../matrix/dsyev_driver.h"
-#include "../matrix/dpotri_driver.h"
-#include "slacked_grad.h"
 
-#include "k_aug_data.h"
-#include "config_kaug.h"
 #ifdef USE_MC30
 #include "../HSL/mc30_driver.h"
 #else
-#include "../interfaces/hsl/mc19_driver.h"
 #endif
 
 #define NUM_REG_SUF 8
@@ -561,6 +541,7 @@ int main(int argc, char **argv){
     printf("nlp_i.m %d\n", nlp_i.m);
     /*constraintskind*/
     con_check(n_con, LUrhs, &nlp_i); /* Find the inequality constraints */
+    if (nlp_i.slack_i == NULL) { printf("Missing slack identyfier"); }
 
 
     /* The number of inequality constraints is equal to the number of slacks */
@@ -600,14 +581,14 @@ int main(int argc, char **argv){
     }
 
 
+
+
+    slacked_grad(asl, &nlp_i, x, Acol, Arow, Aij);
     free(nlp_i.con_flag);
     free(nlp_i.eq_c);
     free(nlp_i.gl_c);
     free(nlp_i.gu_c);
     free(nlp_i.glu_c);
-
-    slacked_grad(asl, &nlp_i, x, Acol, Arow, Aij);
-
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */

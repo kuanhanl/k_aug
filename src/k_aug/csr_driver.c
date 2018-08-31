@@ -22,9 +22,6 @@
 *******************************************************************************/
 
 #include "csr_driver.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
 
 
 void csr_driver(int nvar, int ncon, int nzW, int nzA,
@@ -87,7 +84,6 @@ void csr_driver(int nvar, int ncon, int nzW, int nzA,
 	for(i=0; i < nzA; i++){
 		row = Arow[i]-1;
 		assert(rn[row] <= nzr_k[row]);
-
 		Kcol[row][rn[row]] = Acol[i] + nvar;
 		Kij [row][rn[row]] = Aij[i];
 		

@@ -14,6 +14,7 @@ typedef struct nlp_info{
     int m_gu;
     int m_glu;
     int n_slack;
+    int *slack_i;
     int len_active_bnd;
     int *eq_c;
     int *gl_c;
