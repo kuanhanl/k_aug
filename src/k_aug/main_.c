@@ -27,10 +27,12 @@
 
 #include "../interfaces/mumps/mumps_driver.h"
 
+
 #ifdef USE_MC30
 #include "../HSL/mc30_driver.h"
 #else
 #endif
+
 
 #define NUM_REG_SUF 8
 /* experimental! */
@@ -584,6 +586,8 @@ int main(int argc, char **argv){
 
 
     slacked_grad(asl, &nlp_i, x, Acol, Arow, Aij);
+    slacked_hessian(asl, &nlp_i, x, lambda);
+
     free(nlp_i.con_flag);
     free(nlp_i.eq_c);
     free(nlp_i.gl_c);

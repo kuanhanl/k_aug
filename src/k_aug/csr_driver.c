@@ -23,7 +23,6 @@
 
 #include "csr_driver.h"
 
-
 void csr_driver(int nvar, int ncon, int nzW, int nzA,
 	int *nzr_w, int *nzr_a,
 	fint *Wrow, fint *Wcol, real *Wij,
