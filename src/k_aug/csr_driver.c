@@ -21,6 +21,7 @@
 ** @return something
 *******************************************************************************/
 
+#include <assert.h>
 #include "csr_driver.h"
 
 void csr_driver(int nvar, int ncon, int nzW, int nzA,

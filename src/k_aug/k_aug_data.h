@@ -6,10 +6,10 @@
 #define K_AUG_DATA_H
 
 typedef struct nlp_info{
-    int n;
-    int m;
+    int n_orig;
+    int m_orig;
     int m_eq;
-    int m_i;
+    int m_ineq;
     int m_gl;
     int m_gu;
     int m_glu;
@@ -22,6 +22,21 @@ typedef struct nlp_info{
     int *glu_c;
     int *con_flag;
 } nlp_info;
+
+typedef struct nlp_pd {
+    double *x; /* trial */
+    double *y;
+    double *x_current;
+    double *y_current;
+    double *x_orig; /* no slack */
+    double *y_orig;
+    double *x_0;
+    double *y_0;
+    double *zl_0;
+    double *zu_0;
+    double *s0;
+} nlp_pd;
+
 
 typedef struct inertia_strategy_params{
     double km;

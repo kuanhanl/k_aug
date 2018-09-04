@@ -32,14 +32,14 @@ void con_check(fint ncon_, real *LBC, nlp_info *nlp_i) {
     n_double = 0;
     int *si = NULL;
 
-    si = (int *) malloc(sizeof(int) * nlp_i->m);
+    si = (int *) malloc(sizeof(int) * nlp_i->m_orig);
 
     /* Inequality cases for general form gl <= g(x) <= gu:
      * 299  gl < -inf, and gu <= inf (ERROR)
      * 3    gl = gu (Equalitity)
      * -1   gl <= g(x) <= gu (General inequality)
-     * 1    gl <= -inf (inequality lower or equal gu)
-     * 2    gu >= -inf (inequality greater or equal gl) */
+     * 1    gl <= -inf --> g(x)<=gu (inequality lower or equal gu)
+     * 2    gu >= -inf --> g(x)>=gl (inequality greater or equal gl) */
     for (i = 0; i < ncon_; i++) {
         if (LBC[2 * i] <= -1e300 && LBC[2 * i + 1] >= 1e300) {
             /* Invalid case */
@@ -112,7 +112,7 @@ void con_check(fint ncon_, real *LBC, nlp_info *nlp_i) {
     for (i = 0; i < (s + n_double); i++) {
         printf("slack %d\t%d\n", i, nlp_i->slack_i[i]);
     }
-
+    free(si);
     nlp_i->m_eq = eq_con;
     nlp_i->m_gl = leq_con;
     nlp_i->m_gu = geq_con;

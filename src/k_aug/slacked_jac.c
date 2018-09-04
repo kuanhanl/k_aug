@@ -2,9 +2,9 @@
 // Created by dav0 on 8/29/18.
 //
 
-#include "slacked_grad.h"
+#include "slacked_jac.h"
 
-void slacked_grad(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, double *Aij) {
+void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, double *Aij) {
     int i, j, k, glu_nz, nz_newjac, si = 0;
     int new_m;
     int *nz_c;
@@ -20,9 +20,9 @@ void slacked_grad(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doub
     memset(J, 0, sizeof(double) * asl->i.nzc_);
     jacval(x, J, &error);
 
-    nz_c = (int *) malloc(sizeof(int) * nlp_i->m);
+    nz_c = (int *) malloc(sizeof(int) * nlp_i->m_orig);
 
-    for (j = 0; j < nlp_i->m; j++) {
+    for (j = 0; j < nlp_i->m_orig; j++) {
         nz_c[j] = 0;
         for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
             nz_c[j]++;
@@ -50,17 +50,17 @@ void slacked_grad(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doub
 
     i = 0;
     si = 0;
-    for (j = 0; j < nlp_i->m; j++) {
+    for (j = 0; j < nlp_i->m_orig; j++) {
         for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
             ac[i] = j;
             ar[i] = cg->varno;
-            a[i] = (nlp_i->con_flag[j] == 1) ? -J[cg->goff] : J[cg->goff];
+            a[i] = (nlp_i->con_flag[j] == 2) ? -J[cg->goff] : J[cg->goff];
             i++;
         }
         if (nlp_i->con_flag[j] != 3) { /* Slacks are required */
             printf("nlp_i->con_flag[%d] = %d\n", j, nlp_i->con_flag[j]);
             ac[i] = j;
-            ar[i] = nlp_i->n + si;
+            ar[i] = nlp_i->n_orig + si;
             a[i] = 1;
             si++;
             i++;
@@ -71,13 +71,13 @@ void slacked_grad(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doub
     for (j = 0; j < nlp_i->m_glu; j++) {
         k = nlp_i->glu_c[j];
         for (cg = asl->i.Cgrad_[k]; cg; cg = cg->next) {
-            ac[i] = nlp_i->m + j;
+            ac[i] = nlp_i->m_orig + j;
             ar[i] = cg->varno;
             a[i] = -J[cg->goff];
             i++;
         }
         ac[i] = k;
-        ar[i] = nlp_i->n + si;
+        ar[i] = nlp_i->n_orig + si;
         a[i] = 1;
         si++;
         i++;
@@ -91,7 +91,7 @@ void slacked_grad(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doub
     }
     fclose(my_file);
     my_file = fopen("original_a.txt", "w");
-    for (j = 0; j < nlp_i->m; j++) {
+    for (j = 0; j < nlp_i->m_orig; j++) {
         for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
             fprintf(my_file, "%d\t%d\t%f\n", cg->varno, j, J[cg->goff]);
         }
