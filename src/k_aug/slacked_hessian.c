@@ -5,7 +5,7 @@
 #include "slacked_hessian.h"
 
 void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
-    int i, j, k, nz_h;
+    int i, j, d_slk = 0, nz_h;
     int *hr = NULL, *hc = NULL;
     double *h = NULL;
     int obj_sign = 1;
@@ -20,11 +20,24 @@ void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
     y = (double *) malloc(nlp_i->m_orig * sizeof(double));
 
     for (i = 0; i < nlp_i->n_orig; i++) { x[i] = nlp_pd->x_orig[i]; }
+    d_slk = 0;
     for (i = 0; i < nlp_i->m_orig; i++) {
         if (nlp_i->con_flag[i] == 2) {
             y[i] = -nlp_pd->y_orig[i];
-        } else if (nlp_i->con_flag[i] == 3) {
-            y[i] = -nlp_pd->y_orig[i];
+        } else if (nlp_i->con_flag[i] == -1) { /* Double inequality */
+            j = nlp_i->m_orig + (d_slk++);
+            if (nlp_pd->slack_curr[i] > 0.0 && nlp_pd->slack_curr[j] > 0.0) {
+                y[i] = 0.0;
+            } else if (nlp_pd->slack_curr[i] > 0.0) {
+                y[i] = nlp_pd->y_orig[i];
+            } else if (nlp_pd->slack_curr[j] > 0.0) {
+                y[i] = -nlp_pd->y_orig[i];
+            } else {
+                fprintf(stderr, "The slacks cannot be both 0 at constraint %d\n", i);
+                exit(-1);
+            }
+        } else {
+            y[i] = nlp_pd->y_orig[i];
         }
     }
 

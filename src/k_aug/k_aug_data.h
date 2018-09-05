@@ -14,7 +14,8 @@ typedef struct nlp_info{
     int m_gu;
     int m_glu;
     int n_slack;
-    int *slack_i;
+    int *con_slack; /* constraint number for a given slack j */
+    int *slack_con; /* slack number for a given constraint j */
     int len_active_bnd;
     int *eq_c;
     int *gl_c;
@@ -28,6 +29,7 @@ typedef struct nlp_pd {
     double *y;
     double *x_current;
     double *y_current;
+    double *slack_curr;
     double *x_orig; /* no slack */
     double *y_orig;
     double *x_0;

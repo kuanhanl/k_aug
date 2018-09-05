@@ -601,8 +601,8 @@ int main(int argc, char **argv){
     nlp_i.glu_c = (int *) malloc(sizeof(int) * n_con);
     printf("nlp_i.m_orig %d\n", nlp_i.m_orig);
     /*constraintskind*/
-    con_check(n_con, LUrhs, &nlp_i); /* Find the inequality constraints */
-    if (nlp_i.slack_i == NULL) { printf("Missing slack identyfier"); }
+    con_check(asl, &nlp_i); /* Find the inequality constraints */
+    if (nlp_i.con_slack == NULL) { printf("Missing slack identyfier"); }
 
 
     /* The number of inequality constraints is equal to the number of slacks */
@@ -652,6 +652,9 @@ int main(int argc, char **argv){
     slacked_jac(asl, &nlp_i, x, Acol, Arow, Aij);
     slacked_hessian(asl, &nlp_i, &nlp_pd);
 
+    for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
+    for (i = 0; i < nlp_i.m_orig; i++) { printf("slack_con %d\n", nlp_i.slack_con[i]); }
+
     free(nlp_i.con_flag);
     free(nlp_i.eq_c);
     free(nlp_i.gl_c);
@@ -662,6 +665,9 @@ int main(int argc, char **argv){
     free(nlp_pd.y_0);
     free(nlp_pd.x_orig);
     free(nlp_pd.y_orig);
+    free(nlp_i.con_slack);
+    free(nlp_i.slack_con);
+    free(nlp_pd.slack_curr);
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */
