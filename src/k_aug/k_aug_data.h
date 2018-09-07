@@ -22,11 +22,13 @@ typedef struct nlp_info{
     int *gu_c;
     int *glu_c;
     int *con_flag;
+    int *nz_J;
 } nlp_info;
 
 typedef struct nlp_pd {
     double *x; /* trial */
-    double *y;
+    double *yu, *yl, *y;
+    double *zu, *zl;
     double *x_current;
     double *y_current;
     double *slack_curr;

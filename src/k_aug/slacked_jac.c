@@ -2,6 +2,7 @@
 // Created by dav0 on 8/29/18.
 //
 
+#include <assert.h>
 #include "slacked_jac.h"
 
 void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, double *Aij) {
@@ -13,26 +14,23 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doubl
     cgrad *cg = NULL;
     int *ac = NULL, *ar = NULL;
     double *a = NULL;
+    t_g *grad_s = NULL;
     FILE *my_file;
     glu_nz = 0;
 
     J = (double *) malloc(sizeof(double) * asl->i.nzc_);
     memset(J, 0, sizeof(double) * asl->i.nzc_);
+    grad_s = (t_g *)malloc(sizeof(t_g) * nlp_i->n_orig);
+
     jacval(x, J, &error);
 
-    nz_c = (int *) malloc(sizeof(int) * nlp_i->m_orig);
-
-    for (j = 0; j < nlp_i->m_orig; j++) {
-        nz_c[j] = 0;
-        for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
-            nz_c[j]++;
-        }
-    }
+    nlp_i->nz_J = (int *)malloc(sizeof(int) * nlp_i->m_orig);
+    count_nz_jac(asl->i.Cgrad_, nlp_i);
 
     /* Count the nz necessary for the double ineq constr */
     for (j = 0; j < nlp_i->m_glu; j++) {
         i = nlp_i->glu_c[j];
-        glu_nz += nz_c[i];
+        glu_nz += nlp_i->nz_J[i];
     }
     nlp_i->n_slack = nlp_i->m_gl + nlp_i->m_gu + nlp_i->m_glu;
     printf("n_slacks %d\n", nlp_i->n_slack);
@@ -51,10 +49,16 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doubl
     i = 0;
     si = 0;
     for (j = 0; j < nlp_i->m_orig; j++) {
+        k = 0;
         for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
+
             ac[i] = j;
             ar[i] = cg->varno;
             a[i] = (nlp_i->con_flag[j] == 2) ? -J[cg->goff] : J[cg->goff];
+            grad_s[k].a = a[i];
+            grad_s[k].r = cg->varno;
+            grad_s[k].a_ptr = &(a[i]);
+            k++;
             i++;
         }
         if (nlp_i->con_flag[j] != 3) { /* Slacks are required */
@@ -96,13 +100,52 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doubl
             fprintf(my_file, "%d\t%d\t%f\n", cg->varno, j, J[cg->goff]);
         }
     }
+
     fclose(my_file);
 
     free(J);
     free(ac);
     free(ar);
     free(a);
-    free(nz_c);
+
 
     printf("давай!\n");
+}
+
+
+void count_nz_jac(cgrad **cgrad1, nlp_info *nlp_info1){
+    int j;
+    cgrad *g;
+    assert(nlp_info1->nz_J);
+    memset(nlp_info1->nz_J, 0, sizeof(int) * nlp_info1->m_orig);
+    for(j=0; j<nlp_info1->m_orig; j++){
+        for(g=cgrad1[j]; g; g = g->next){
+            nlp_info1->nz_J[j]++;
+        }
+        printf("non-z in the Jac %d\t%d\n", j, nlp_info1->nz_J[j]);
+    }
+
+}
+
+void reorder_grad(int const *g_col, double *g_a, int nz_g, int **ptr, t_g *grad_s){
+    int j;
+
+    assert(grad_s);
+    for(j=0; j<nz_g; j++){
+        grad_s[j].a = g_a[j];
+        grad_s[j].a_ptr = &(g_a[j]);
+        grad_s[j].r = g_col[j];
+    }
+    qsort(grad_s, nz_g, sizeof(grad_s), grad_elem_comparision);
+    free(grad_s);
+}
+
+
+int grad_elem_comparision(const void *t1, const void *t2)
+{
+    t_g f_t  = *(const t_g *)t1;
+    t_g s_t = *(const t_g *)t2;
+    int fst = (int) (f_t.r);
+    int scd = (int) (f_t.r);
+    return (fst - scd);
 }

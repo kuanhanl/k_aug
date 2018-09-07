@@ -11,6 +11,17 @@
 /* ASL *asl, real *x, fint *Acol, fint *Arow, real *Aij,
                      int nvar, int ncon, fint nzc_, fint *nerror, int **nz_row_a */
 void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, double *Aij);
+void count_nz_jac(cgrad **cgrad1, nlp_info *nlp_info1);
+
+typedef struct triplet_grad{
+    int r;
+    double *a_ptr;
+    double a;
+}t_g;
+
+void reorder_grad(int const *g_col, double *g_a, int nz_g, int **ptr, t_g *grad_s);
+int grad_elem_comparision(const void *t1, const void *t2);
+
 
 
 #endif //K_AUG_SLACKED_GRAD_H

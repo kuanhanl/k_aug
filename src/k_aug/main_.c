@@ -652,8 +652,8 @@ int main(int argc, char **argv){
     slacked_jac(asl, &nlp_i, x, Acol, Arow, Aij);
     slacked_hessian(asl, &nlp_i, &nlp_pd);
 
-    for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
-    for (i = 0; i < nlp_i.m_orig; i++) { printf("slack_con %d\n", nlp_i.slack_con[i]); }
+    /*for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
+    for (i = 0; i < nlp_i.m_orig; i++) { printf("slack_con %d\n", nlp_i.slack_con[i]); }*/
 
     free(nlp_i.con_flag);
     free(nlp_i.eq_c);
