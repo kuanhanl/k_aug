@@ -19,7 +19,7 @@ typedef struct triplet_grad{
     double a;
 }t_g;
 
-void reorder_grad(int const *g_col, double *g_a, int nz_g, int **ptr, t_g *grad_s);
+void reorder_grad(t_g *grad_s, int nz_g, int **ptr);
 int grad_elem_comparision(const void *t1, const void *t2);
 
 

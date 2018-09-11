@@ -6,7 +6,7 @@
 #include "slacked_jac.h"
 
 void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, double *Aij) {
-    int i, j, k, glu_nz, nz_newjac, si = 0;
+    int i, j, k, l, glu_nz, nz_newjac, si = 0;
     int new_m;
     int *nz_c;
     int error = 0;
@@ -48,28 +48,37 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doubl
 
     i = 0;
     si = 0;
+    my_file = fopen("reordered_jac.txt", "w");
     for (j = 0; j < nlp_i->m_orig; j++) {
+
         k = 0;
         for (cg = asl->i.Cgrad_[j]; cg; cg = cg->next) {
-
             ac[i] = j;
             ar[i] = cg->varno;
             a[i] = (nlp_i->con_flag[j] == 2) ? -J[cg->goff] : J[cg->goff];
+
             grad_s[k].a = a[i];
             grad_s[k].r = cg->varno;
-            grad_s[k].a_ptr = &(a[i]);
+            grad_s[k].a_ptr = a + i;
+
             k++;
             i++;
         }
         if (nlp_i->con_flag[j] != 3) { /* Slacks are required */
-            printf("nlp_i->con_flag[%d] = %d\n", j, nlp_i->con_flag[j]);
             ac[i] = j;
             ar[i] = nlp_i->n_orig + si;
             a[i] = 1;
             si++;
             i++;
         }
+        reorder_grad(grad_s, k, NULL);
+        printf("\n\n");
+        for (l = 0; l < k; l++) {
+            fprintf(my_file, "%d\t%d\t%f\n", grad_s[l].r, j, grad_s[l].a);
+        }
+
     }
+    fclose(my_file);
 
     /* Append the gl part of this */
     for (j = 0; j < nlp_i->m_glu; j++) {
@@ -107,7 +116,8 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, int *Acol, int *Arow, doubl
     free(ac);
     free(ar);
     free(a);
-
+    free(nlp_i->nz_J);
+    free(grad_s);
 
     printf("давай!\n");
 }
@@ -122,30 +132,20 @@ void count_nz_jac(cgrad **cgrad1, nlp_info *nlp_info1){
         for(g=cgrad1[j]; g; g = g->next){
             nlp_info1->nz_J[j]++;
         }
-        printf("non-z in the Jac %d\t%d\n", j, nlp_info1->nz_J[j]);
     }
 
 }
 
-void reorder_grad(int const *g_col, double *g_a, int nz_g, int **ptr, t_g *grad_s){
-    int j;
-
+void reorder_grad(t_g *grad_s, int nz_g, int **ptr) {
     assert(grad_s);
-    for(j=0; j<nz_g; j++){
-        grad_s[j].a = g_a[j];
-        grad_s[j].a_ptr = &(g_a[j]);
-        grad_s[j].r = g_col[j];
-    }
-    qsort(grad_s, nz_g, sizeof(grad_s), grad_elem_comparision);
-    free(grad_s);
+    qsort(grad_s, (size_t) ((unsigned) nz_g), sizeof(t_g), grad_elem_comparision);
 }
 
 
-int grad_elem_comparision(const void *t1, const void *t2)
-{
+int grad_elem_comparision(const void *t1, const void *t2) {
     t_g f_t  = *(const t_g *)t1;
     t_g s_t = *(const t_g *)t2;
-    int fst = (int) (f_t.r);
-    int scd = (int) (f_t.r);
+    int fst = f_t.r;
+    int scd = s_t.r;
     return (fst - scd);
 }
