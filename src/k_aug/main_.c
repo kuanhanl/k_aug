@@ -33,6 +33,7 @@
 #include "con_check.h"
 #include "slacked_grad.h"
 #include "slacked_jac.h"
+#include "get_mult0.h"
 #include "slacked_hessian.h"
 #include "get_jac_asl_aug.h"
 #include "get_hess_asl_aug.h"
@@ -658,7 +659,10 @@ int main(int argc, char **argv){
     compute_slacks(asl, &nlp_i, &nlp_pd);
     slacked_grad(asl, &nlp_i, &nlp_pd);
     slacked_jac(asl, &nlp_i, x, &nlp_pd);
+
     slacked_hessian(asl, &nlp_i, &nlp_pd);
+
+
 
     /*for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
     for (i = 0; i < nlp_i.m_orig; i++) { printf("slack_con %d\n", nlp_i.slack_con[i]); }*/
@@ -685,6 +689,10 @@ int main(int argc, char **argv){
     free(nlp_pd.hess_l);
     free(nlp_pd.hl_r);
     free(nlp_pd.hlptr);
+
+    free(nlp_pd.y);
+    free(nlp_pd.yl);
+    free(nlp_pd.yu);
 
 
     /* Row and column for the triplet format A matrix */

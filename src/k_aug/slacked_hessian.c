@@ -20,39 +20,10 @@ void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
     printf("nz_h %d\n", nz_h);
 
     n = nlp_i->n_orig + nlp_i->n_slack;
-    m = nlp_i->m_orig + nlp_i->n_slack;
 
-    yu = (double *) malloc(m * sizeof(double)); /* leq inequality */
-    yl = (double *) malloc(m * sizeof(double)); /* geq inequality */
-    y = (double *) malloc(m * sizeof(double)); /* geq inequality */
-
-    memset(yu, 0, m * sizeof(double));
-    memset(yl, 0, m * sizeof(double));
-    memset(y, 0,  m * sizeof(double));
-
-    d_slk = 0;
-    for (i = 0; i < nlp_i->m_orig; i++) {
-        if (nlp_i->con_flag[i] == 2) {
-            yl[i] = nlp_pd->y_orig[i];
-        } else if (nlp_i->con_flag[i] == -1) { /* Double inequality */
-            j = nlp_i->m_orig + (d_slk++);
-            if (nlp_pd->slack_curr[i] > 0.0 && nlp_pd->slack_curr[j] > 0.0) {
-                ;
-            } else if (nlp_pd->slack_curr[i] > 0.0) {
-                yu[i] = nlp_pd->y_orig[i];
-            } else if (nlp_pd->slack_curr[j] > 0.0) {
-                yl[i] = nlp_pd->y_orig[i];
-            } else {
-                fprintf(stderr, "The slacks cannot be both 0 at constraint %d\n", i);
-                exit(-1);
-            }
-        } else { /*leq and equality */
-            /* very sloppy */
-            yl[i] = nlp_pd->y_orig[i];
-            /*yu[i] = nlp_pd->y_orig[i];*/
-        }
-        y[i] = yl[i] - yu[i];
-    }
+    yu = nlp_pd->yu;
+    yl = nlp_pd->yl;
+    y = nlp_pd->y;
 
     nz_slk_h = nz_h + nlp_i->n_slack + nlp_i->n_orig;
 
@@ -97,8 +68,5 @@ void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
     nlp_pd->hl_r = hr;
     nlp_pd->hlptr = col_ptr;
 
-    free(y);
-    free(yu);
-    free(yl);
 }
 
