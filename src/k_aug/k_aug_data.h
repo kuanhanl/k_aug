@@ -39,6 +39,13 @@ typedef struct nlp_pd {
     double *zl_0;
     double *zu_0;
     double *s0;
+    double *grad_f;
+    double *jac_c;
+    int *jc_r;
+    int *jcptr;
+    double *hess_l;
+    int *hl_r;
+    int *hlptr;
 } nlp_pd;
 
 

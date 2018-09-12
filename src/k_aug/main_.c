@@ -31,6 +31,7 @@
 #include "mu_adjust_primal.h"
 #include "sigma_compute.h"
 #include "con_check.h"
+#include "slacked_grad.h"
 #include "slacked_jac.h"
 #include "slacked_hessian.h"
 #include "get_jac_asl_aug.h"
@@ -255,7 +256,13 @@ int main(int argc, char **argv){
             .y_0=NULL,
             .zl_0=NULL,
             .zu_0=NULL,
-            .s0=NULL};
+            .s0=NULL,
+            .jac_c=NULL,
+            .jc_r=NULL,
+            .jcptr=NULL,
+            .hess_l=NULL,
+            .hl_r=NULL,
+            .hlptr=NULL};
 
     /* inertia data-structures */
     inertia_params inrt_parms;
@@ -649,7 +656,8 @@ int main(int argc, char **argv){
 
     xknown(nlp_pd.x_orig);
     compute_slacks(asl, &nlp_i, &nlp_pd);
-    slacked_jac(asl, &nlp_i, x, Acol, Arow, Aij);
+    slacked_grad(asl, &nlp_i, &nlp_pd);
+    slacked_jac(asl, &nlp_i, x, &nlp_pd);
     slacked_hessian(asl, &nlp_i, &nlp_pd);
 
     /*for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
@@ -668,6 +676,16 @@ int main(int argc, char **argv){
     free(nlp_i.con_slack);
     free(nlp_i.slack_con);
     free(nlp_pd.slack_curr);
+
+    free(nlp_pd.jac_c);
+    free(nlp_pd.jc_r);
+    free(nlp_pd.jcptr);
+    free(nlp_pd.grad_f);
+
+    free(nlp_pd.hess_l);
+    free(nlp_pd.hl_r);
+    free(nlp_pd.hlptr);
+
 
     /* Row and column for the triplet format A matrix */
     /* size of the number of nonzeroes in the constraint jacobian */
