@@ -250,6 +250,7 @@ int main(int argc, char **argv){
             .m_gu = 0,
             .n_slack = 0,
             .len_active_bnd = 0};
+    nlp_i.nlp_id = &nlpi_deallocate;
 
     nlp_pd nlp_pd = {.x=NULL,
             .y=NULL,
@@ -264,6 +265,8 @@ int main(int argc, char **argv){
             .hess_l=NULL,
             .hl_r=NULL,
             .hlptr=NULL};
+
+    double *dxl = NULL;
 
     /* inertia data-structures */
     inertia_params inrt_parms;
@@ -657,39 +660,40 @@ int main(int argc, char **argv){
 
     xknown(nlp_pd.x_orig);
     compute_slacks(asl, &nlp_i, &nlp_pd);
+    get_mult0(&nlp_i, &nlp_pd);
     slacked_grad(asl, &nlp_i, &nlp_pd);
     slacked_jac(asl, &nlp_i, x, &nlp_pd);
-
     slacked_hessian(asl, &nlp_i, &nlp_pd);
+    dxl = (double *) malloc(sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
+    sl_grad_times_y(&nlp_i, nlp_pd.jcptr, nlp_pd.jc_r, nlp_pd.jac_c, nlp_pd.y, dxl);
+    free(dxl);
 
-
-
-    /*for (i = 0; i < nlp_i.n_slack; i++) { printf("con_slack %d\n", nlp_i.con_slack[i]); }
+    /*for (i = 0; i < nlp_i.n_slack; i++) {
+     * printf("con_slack %d\n", nlp_i.con_slack[i]);
+     * }
     for (i = 0; i < nlp_i.m_orig; i++) { printf("slack_con %d\n", nlp_i.slack_con[i]); }*/
 
-    free(nlp_i.con_flag);
+    /* free(nlp_i.con_flag);
     free(nlp_i.eq_c);
     free(nlp_i.gl_c);
     free(nlp_i.gu_c);
     free(nlp_i.glu_c);
+    free(nlp_i.con_slack);
+    free(nlp_i.slack_con); */
+    nlp_i.nlp_id(&nlp_i);
 
     free(nlp_pd.x_0);
     free(nlp_pd.y_0);
     free(nlp_pd.x_orig);
     free(nlp_pd.y_orig);
-    free(nlp_i.con_slack);
-    free(nlp_i.slack_con);
     free(nlp_pd.slack_curr);
-
     free(nlp_pd.jac_c);
     free(nlp_pd.jc_r);
     free(nlp_pd.jcptr);
     free(nlp_pd.grad_f);
-
     free(nlp_pd.hess_l);
     free(nlp_pd.hl_r);
     free(nlp_pd.hlptr);
-
     free(nlp_pd.y);
     free(nlp_pd.yl);
     free(nlp_pd.yu);

@@ -8,7 +8,7 @@ void get_mult0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
     int i, j, d_slk = 0, m, n;
     double *yu = NULL, *yl = NULL, *y = NULL;
     n = nlp_i->n_orig + nlp_i->n_slack;
-    m = nlp_i->m_orig + nlp_i->n_slack;
+    m = nlp_i->m_orig + nlp_i->m_glu;
 
     yu = (double *) malloc(m * sizeof(double)); /* leq inequality */
     yl = (double *) malloc(m * sizeof(double)); /* geq inequality */
@@ -29,6 +29,8 @@ void get_mult0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
                 yu[i] = nlp_pd->y_orig[i];
             } else if (nlp_pd->slack_curr[j] > 0.0) {
                 yl[i] = nlp_pd->y_orig[i];
+                yl[i + nlp_i->m_orig] = nlp_pd->y_orig[i]; /* trailing part of the multipliers */
+                y[i] = nlp_pd->y_orig[i];
             } else {
                 fprintf(stderr, "The slacks cannot be both 0 at constraint %d\n", i);
                 exit(-1);

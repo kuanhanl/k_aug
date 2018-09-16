@@ -23,6 +23,8 @@ typedef struct nlp_info{
     int *glu_c;
     int *con_flag;
     int *nz_J;
+
+    void (*nlp_id)(struct nlp_info *); /* deallocate function pointer */
 } nlp_info;
 
 typedef struct nlp_pd {
@@ -46,6 +48,8 @@ typedef struct nlp_pd {
     double *hess_l;
     int *hl_r;
     int *hlptr;
+
+    void (*nlp_pdd)(nlp_info *nlp_info1); /* deallocator function pointer */
 } nlp_pd;
 
 
@@ -85,5 +89,7 @@ typedef struct linear_solver_options{
     double pivtol_max;
 } linsol_opts;
 
+
+void nlpi_deallocate(nlp_info *nlp_info1);
 
 #endif /*K_AUG_DATA_H*/

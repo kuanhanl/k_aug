@@ -62,9 +62,7 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
             grad_s[k].a_ptr = J + cg->goff;
             k++;
         }
-
         reorder_grad(grad_s, k, NULL);
-
         for (l = 0; l < k; l++) {
             ar[i] = grad_s[l].r;
             a[i] = grad_s[l].a;
@@ -81,7 +79,6 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
 
     /* Append the gl part of this */
     for (j = 0; j < nlp_i->m_glu; j++) {
-        k = nlp_i->glu_c[j]; /* row of the jac */
         col_ptr[j + nlp_i->m_orig] = i;
         for (l = col_ptr[j]; l < col_ptr[j + 1]; l++) {
             ar[i] = ar[l];
@@ -136,7 +133,6 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
      */
 
     free(ap);
-    free(nlp_i->nz_J);
     free(grad_s);
 
     printf("давай!\n");
@@ -174,10 +170,15 @@ int grad_elem_comparision(const void *t1, const void *t2) {
 void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, double *y, double *dcy) {
     int i, j, m;
     m = nlp_i->m_orig + nlp_i->m_glu;
-    memset(dcy, 0, sizeof(double) * (nlp_i->n_orig + nlp_i->n_slack));
+    memset(dcy, 0, sizeof(double) * m);
     for (j = 0; j < m; j++) { /* access by column */
-        for (i = cptr[j]; i < cptr[j + 1]; j++) {
-            dcy[rw[i]] += a[i] * y[j];
+        for (i = cptr[j]; i < cptr[j + 1]; i++) {
+            printf("rw[%d]\t=\t%d\n", i, rw[i]);
+        }
+    }
+    for (j = 0; j < m; j++) { /* access by column */
+        for (i = cptr[j]; i < cptr[j + 1]; i++) {
+            dcy[j] += a[i] * y[j];
         }
     }
 
