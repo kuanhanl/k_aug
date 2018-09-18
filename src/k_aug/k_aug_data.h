@@ -23,14 +23,13 @@ typedef struct nlp_info{
     int *glu_c;
     int *con_flag;
     int *nz_J;
-
     void (*nlp_id)(struct nlp_info *); /* deallocate function pointer */
 } nlp_info;
 
 typedef struct nlp_pd {
     double *x; /* trial */
     double *yu, *yl, *y;
-    double *zu, *zl;
+    double *zu, *zl, *z;
     double *x_current;
     double *y_current;
     double *slack_curr;
@@ -43,13 +42,15 @@ typedef struct nlp_pd {
     double *s0;
     double *grad_f;
     double *jac_c;
+    double *grad_L;
+    double *grad_c_y;
     int *jc_r;
     int *jcptr;
     double *hess_l;
     int *hl_r;
     int *hlptr;
 
-    void (*nlp_pdd)(nlp_info *nlp_info1); /* deallocator function pointer */
+    void (*nlp_pdd)(struct nlp_pd *); /* deallocator function pointer */
 } nlp_pd;
 
 
@@ -91,5 +92,7 @@ typedef struct linear_solver_options{
 
 
 void nlpi_deallocate(nlp_info *nlp_info1);
+
+void nlppd_deallocate(nlp_pd *nlp_pd1);
 
 #endif /*K_AUG_DATA_H*/

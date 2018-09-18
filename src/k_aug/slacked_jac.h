@@ -22,7 +22,7 @@ typedef struct triplet_grad{
 void reorder_grad(t_g *grad_s, int nz_g, int **ptr);
 int grad_elem_comparision(const void *t1, const void *t2);
 
-void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, double *y, double *dcy);
+void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, double *y, nlp_pd *nlp_pd1);
 
 
 

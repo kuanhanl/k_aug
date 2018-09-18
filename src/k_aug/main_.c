@@ -45,6 +45,7 @@
 #include "../matrix/dpotri_driver.h"
 #include "csr_driver.h"
 #include "compute_slacks.h"
+#include "compute_glagrangian.h"
 
 
 #ifdef USE_MC30
@@ -265,7 +266,7 @@ int main(int argc, char **argv){
             .hess_l=NULL,
             .hl_r=NULL,
             .hlptr=NULL};
-
+    nlp_pd.nlp_pdd = &nlppd_deallocate;
     double *dxl = NULL;
 
     /* inertia data-structures */
@@ -604,12 +605,13 @@ int main(int argc, char **argv){
             }
         }
     }
-    printf("nlp_i.m_orig %d\n", nlp_i.m_orig);
+
     nlp_i.con_flag = (int *) malloc(sizeof(int) * n_con); /* Flags for ineq or equalities*/
     nlp_i.eq_c = (int *) malloc(sizeof(int) * n_con);
     nlp_i.gl_c = (int *) malloc(sizeof(int) * n_con);
     nlp_i.gu_c = (int *) malloc(sizeof(int) * n_con);
     nlp_i.glu_c = (int *) malloc(sizeof(int) * n_con);
+
     printf("nlp_i.m_orig %d\n", nlp_i.m_orig);
     /*constraintskind*/
     con_check(asl, &nlp_i); /* Find the inequality constraints */
@@ -617,7 +619,14 @@ int main(int argc, char **argv){
 
 
     /* The number of inequality constraints is equal to the number of slacks */
-    n_ineq = nlp_i.m_gl + nlp_i.m_gu;
+    n_ineq = nlp_i.m_gl + nlp_i.m_gu + nlp_i.m_glu * 2;
+
+    printf("gl\t%d\n", nlp_i.m_gl);
+    printf("gu\t%d\n", nlp_i.m_gu);
+    printf("glu\t%d\n", nlp_i.m_glu);
+    printf("nineq\t%d\n", n_ineq);
+    printf("norig\t%d\n", nlp_i.n_orig);
+
     nlp_i.n_slack = n_ineq;
 
     for (j = 0; j < n_con; j++) {
@@ -629,8 +638,8 @@ int main(int argc, char **argv){
     }
 
     printf("Required nz %d\n", n_d_nz);
-    printf("constraints %d\n", nlp_i.m_orig);
-    printf("constraints equality %d\n", nlp_i.m_eq);
+    printf("Constraints %d\n", nlp_i.m_orig);
+    printf("Constraints equality %d\n", nlp_i.m_eq);
 
     for (j = 0; j < nlp_i.m_orig; j++) {
         printf("con_flag %d\t%d\n", j, nlp_i.con_flag[j]);
@@ -659,14 +668,24 @@ int main(int argc, char **argv){
     for (i = 0; i < nlp_i.m_orig; i++) { ; }
 
     xknown(nlp_pd.x_orig);
+
     compute_slacks(asl, &nlp_i, &nlp_pd);
-    get_mult0(&nlp_i, &nlp_pd);
+    get_multy0(&nlp_i, &nlp_pd);
+    get_multz0(&nlp_i, &nlp_pd, z_L, z_U);
     slacked_grad(asl, &nlp_i, &nlp_pd);
     slacked_jac(asl, &nlp_i, x, &nlp_pd);
     slacked_hessian(asl, &nlp_i, &nlp_pd);
-    dxl = (double *) malloc(sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
-    sl_grad_times_y(&nlp_i, nlp_pd.jcptr, nlp_pd.jc_r, nlp_pd.jac_c, nlp_pd.y, dxl);
-    free(dxl);
+
+    printf("n = %d\n", nlp_i.n_orig);
+    printf("nslack = %d\n", (nlp_i.n_slack));
+
+    nlp_pd.grad_c_y = (double *) malloc(sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
+    memset(nlp_pd.grad_c_y, 0, sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
+    sl_grad_times_y(&nlp_i, nlp_pd.jcptr, nlp_pd.jc_r, nlp_pd.jac_c, nlp_pd.y, &nlp_pd);
+    for (i = 0; i < (nlp_i.n_orig + nlp_i.n_slack); i++) { printf("dxl[%d]\t=\t%f\n", i, nlp_pd.grad_c_y[i]); }
+    nlp_pd.grad_L = (double *) malloc(sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
+
+    compute_glagrangian(&nlp_i, &nlp_pd);
 
     /*for (i = 0; i < nlp_i.n_slack; i++) {
      * printf("con_slack %d\n", nlp_i.con_slack[i]);
@@ -681,8 +700,9 @@ int main(int argc, char **argv){
     free(nlp_i.con_slack);
     free(nlp_i.slack_con); */
     nlp_i.nlp_id(&nlp_i);
+    nlp_pd.nlp_pdd(&nlp_pd);
 
-    free(nlp_pd.x_0);
+    /*free(nlp_pd.x_0);
     free(nlp_pd.y_0);
     free(nlp_pd.x_orig);
     free(nlp_pd.y_orig);
@@ -696,7 +716,7 @@ int main(int argc, char **argv){
     free(nlp_pd.hlptr);
     free(nlp_pd.y);
     free(nlp_pd.yl);
-    free(nlp_pd.yu);
+    free(nlp_pd.yu);*/
 
 
     /* Row and column for the triplet format A matrix */

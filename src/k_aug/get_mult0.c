@@ -4,7 +4,7 @@
 
 #include "get_mult0.h"
 
-void get_mult0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
+void get_multy0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
     int i, j, d_slk = 0, m, n;
     double *yu = NULL, *yl = NULL, *y = NULL;
     n = nlp_i->n_orig + nlp_i->n_slack;
@@ -48,3 +48,48 @@ void get_mult0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
     nlp_pd->yl = yl;
 
 }
+
+void get_multz0(const nlp_info *nlp_i, nlp_pd *nlp_pd1, double *zl0, double *zu0) {
+    /* gets the multipliers of the slacked problem */
+    int i = 0, j, n;
+    double *zu = NULL, *zl = NULL, *z = NULL;
+    FILE *myfile = NULL;
+    n = nlp_i->n_orig + nlp_i->n_slack;
+
+    zl = (double *) malloc(sizeof(double) * n);
+    zu = (double *) malloc(sizeof(double) * n);
+    z = (double *) malloc(sizeof(double) * n);
+
+    memset(zl, 0, sizeof(double) * n);
+    memset(zu, 0, sizeof(double) * n);
+    memset(z, 0, sizeof(double) * n);
+
+    for (i = 0; i < nlp_i->n_orig; i++) {
+        zl[i] = zl0[i];
+        zu[i] = zu0[i];
+        z[i] = zl[i] + zu[i];
+    }
+    if (!(nlp_pd1->y) || !(nlp_pd1->yl) || !(nlp_pd1->yu)) {
+        fprintf(stderr, "! missing y multipliers");
+        nlp_pd1->nlp_pdd(nlp_pd1);
+        exit(-1);
+    }
+    for (i = nlp_i->n_orig; i < n; i++) {
+        j = nlp_i->con_slack[i - nlp_i->n_orig];
+        printf("j \t %d\n", j);
+        zl[i] = nlp_pd1->yl[j];
+        zu[i] = 0;
+        z[i] = zl[i] + zu[i];
+    }
+
+    myfile = fopen("z_mult.txt", "w");
+    for (i = 0; i < n; i++) {
+        fprintf(myfile, "%f\t%f\t%f\n", z[i], zl[i], zu[i]);
+    }
+    fclose(myfile);
+
+    nlp_pd1->z = z;
+    nlp_pd1->zl = zl;
+    nlp_pd1->zu = zu;
+}
+

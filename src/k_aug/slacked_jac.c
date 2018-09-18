@@ -33,7 +33,6 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
         glu_nz += nlp_i->nz_J[i];
     }
 
-    nlp_i->n_slack = nlp_i->m_gl + nlp_i->m_gu + nlp_i->m_glu;
     printf("n_slacks %d\n", nlp_i->n_slack);
     printf("Overall missing nz %d\n", glu_nz);
     nz_newjac = asl->i.nzc_ + glu_nz + nlp_i->n_slack + nlp_i->m_glu;
@@ -70,7 +69,7 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
             i++;
         }
         if (nlp_i->con_flag[j] != 3) { /* Slacks are required */
-            ar[i] = nlp_i->n_orig + si;
+            ar[i] = nlp_i->n_orig + si; /* c-style */
             a[i] = 1.0;
             si++;
             i++;
@@ -85,7 +84,7 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
             a[i] = -a[l];
             i++;
         }
-        ar[i] = nlp_i->n_orig + si;
+        ar[i] = nlp_i->n_orig + si; /* c-style */
         a[i] = 1.0;
         si++;
         i++;
@@ -118,6 +117,14 @@ void slacked_jac(ASL *asl, nlp_info *nlp_i, real *x, nlp_pd *nlp_pd0) {
 
     my_file = fopen("jacobian_addresses_mod", "w");
     for (j = 0; j < m; j++) { fprintf(my_file, "%p\t%f\n", ap[j], *(ap[j])); }
+    fclose(my_file);
+
+    my_file = fopen("jacobian_ordered.txt", "w");
+    for (j = 0; j < (nlp_i->m_orig + nlp_i->m_glu); j++) {
+        for (i = col_ptr[j]; i < col_ptr[j + 1]; i++) {
+            fprintf(my_file, "%d\t%d\t%f\n", j, ar[i], a[i]);
+        }
+    }
     fclose(my_file);
 
     nlp_pd0->jac_c = a;
@@ -167,19 +174,32 @@ int grad_elem_comparision(const void *t1, const void *t2) {
 }
 
 
-void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, double *y, double *dcy) {
+void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, double *y, nlp_pd *nlp_pd1) {
     int i, j, m;
+    double *dcy = NULL;
+    FILE *myf;
     m = nlp_i->m_orig + nlp_i->m_glu;
-    memset(dcy, 0, sizeof(double) * m);
+    dcy = nlp_pd1->grad_c_y;
+    myf = fopen("multipliers_blyat.txt", "w");
+    for (j = 0; j < m; j++) {
+        printf("y[%d]\t=\t%f\n", j, y[j]);
+        fprintf(myf, "%f\n", j, y[j]);
+    }
+    fclose(myf);
+
+
     for (j = 0; j < m; j++) { /* access by column */
         for (i = cptr[j]; i < cptr[j + 1]; i++) {
-            printf("rw[%d]\t=\t%d\n", i, rw[i]);
+            dcy[rw[i]] += a[i] * y[j];
         }
     }
-    for (j = 0; j < m; j++) { /* access by column */
-        for (i = cptr[j]; i < cptr[j + 1]; i++) {
-            dcy[j] += a[i] * y[j];
-        }
+    myf = fopen("dotp_blyat.txt", "w");
+    for (j = 0; j < (nlp_i->n_orig + nlp_i->n_slack); j++) {
+        fprintf(myf, "%f\n", j, dcy[j]);
     }
+    fclose(myf);
+    nlp_pd1->grad_c_y = dcy;
+
+
 
 }

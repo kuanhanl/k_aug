@@ -7,6 +7,4 @@
 void con_check(ASL *asl, nlp_info *nlp_i);
 void find_bounds  (fint nvar_,real *lbv);
 
-
-
-#endif
+#endif /* FIND_INEQ_CON */
