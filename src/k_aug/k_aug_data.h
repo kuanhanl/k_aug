@@ -28,11 +28,12 @@ typedef struct nlp_info{
 
 typedef struct nlp_pd {
     double *x; /* trial */
-    double *yu, *yl, *y;
+    double *yu, *yl, *y, *y_asl;
     double *zu, *zl, *z;
     double *x_current;
     double *y_current;
-    double *slack_curr;
+    double *sl_curr;
+    double *su_curr;
     double *x_orig; /* no slack */
     double *y_orig;
     double *x_0;

@@ -63,7 +63,7 @@ void con_check(ASL *asl, nlp_info *nlp_i) {
             } else if (asl->i.LUrhs_[i * 2 + 1] == asl->i.LUrhs_[i * 2]) {
                 nlp_i->eq_c[eq_con] = i;
                 eq_con++;
-                nlp_i->con_flag[i] = 3;
+                nlp_i->con_flag[i] = 3; /* equality */
 
                 /*if(LBC[2*i]!=0.0){nlp_i->con_flag[i] = -3;}*/
             } else {
@@ -79,7 +79,7 @@ void con_check(ASL *asl, nlp_info *nlp_i) {
         } else if (asl->i.LUrhs_[i * 2] <= -1e300) {
             nlp_i->gl_c[leq_con] = i;
             leq_con++;
-            nlp_i->con_flag[i] = 1;
+            nlp_i->con_flag[i] = 1; /* lt ineq (upper bound)*/
             si[s] = i;
             nlp_i->slack_con[i] = s;
             s++;
@@ -87,7 +87,7 @@ void con_check(ASL *asl, nlp_info *nlp_i) {
         } else if (asl->i.LUrhs_[i * 2 + 1] >= 1e300) {
             nlp_i->gu_c[geq_con] = i;
             geq_con++;
-            nlp_i->con_flag[i] = 2;
+            nlp_i->con_flag[i] = 2; /* gt ineq (lower bound) negative multiplier */
             si[s] = i;
             nlp_i->slack_con[i] = s;
             s++;

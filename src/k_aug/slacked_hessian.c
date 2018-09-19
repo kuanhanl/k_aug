@@ -11,7 +11,7 @@ void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
     double *h = NULL;
     int obj_sign = 1;
     double obj_weight = 1.0;
-    double *yu = NULL, *yl = NULL, *y = NULL;
+    double *y = NULL;
 
     if (asl->i.n_obj_ == 0) { exit(-1); }
 
@@ -21,9 +21,7 @@ void slacked_hessian(ASL *asl, nlp_info *nlp_i, nlp_pd *nlp_pd) {
 
     n = nlp_i->n_orig + nlp_i->n_slack;
 
-    yu = nlp_pd->yu;
-    yl = nlp_pd->yl;
-    y = nlp_pd->y;
+    y = nlp_pd->y_asl;
 
     nz_slk_h = nz_h + nlp_i->n_slack + nlp_i->n_orig;
 

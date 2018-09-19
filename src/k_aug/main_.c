@@ -684,7 +684,7 @@ int main(int argc, char **argv){
     sl_grad_times_y(&nlp_i, nlp_pd.jcptr, nlp_pd.jc_r, nlp_pd.jac_c, nlp_pd.y, &nlp_pd);
     for (i = 0; i < (nlp_i.n_orig + nlp_i.n_slack); i++) { printf("dxl[%d]\t=\t%f\n", i, nlp_pd.grad_c_y[i]); }
     nlp_pd.grad_L = (double *) malloc(sizeof(double) * (nlp_i.n_orig + nlp_i.n_slack));
-
+    assert(nlp_pd.grad_L);
     compute_glagrangian(&nlp_i, &nlp_pd);
 
     /*for (i = 0; i < nlp_i.n_slack; i++) {

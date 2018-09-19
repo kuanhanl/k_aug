@@ -2,51 +2,60 @@
 // Created by dav0 on 9/12/18.
 //
 
+#include <assert.h>
 #include "get_mult0.h"
 
 void get_multy0(nlp_info *nlp_i, nlp_pd *nlp_pd) {
-    int i, j, d_slk = 0, m, n;
+    int i, j, d_slk = 0, m;
     double *yu = NULL, *yl = NULL, *y = NULL;
-    n = nlp_i->n_orig + nlp_i->n_slack;
     m = nlp_i->m_orig + nlp_i->m_glu;
 
     yu = (double *) malloc(m * sizeof(double)); /* leq inequality */
     yl = (double *) malloc(m * sizeof(double)); /* geq inequality */
     y = (double *) malloc(m * sizeof(double)); /* geq inequality */
 
+    nlp_pd->y_asl = (double *) malloc(nlp_i->m_orig * sizeof(double));
+
+    assert(yu);
+    assert(yl);
+    assert(y);
+
     memset(yu, 0, m * sizeof(double));
     memset(yl, 0, m * sizeof(double));
     memset(y, 0, m * sizeof(double));
+    memset(nlp_pd->y_asl, 0, nlp_i->m_orig * sizeof(double));
 
     d_slk = 0; /* double slack */
     for (i = 0; i < nlp_i->m_orig; i++) {
         if (nlp_i->con_flag[i] == 2) {
             yl[i] = nlp_pd->y_orig[i];
+            nlp_pd->y_asl[i] = -yl[i];
         } else if (nlp_i->con_flag[i] == -1) { /* Double inequality */
             j = nlp_i->m_orig + (d_slk++);
-            if (nlp_pd->slack_curr[i] > 0.0 && nlp_pd->slack_curr[j] > 0.0) { ;
-            } else if (nlp_pd->slack_curr[i] > 0.0) {
-                yu[i] = nlp_pd->y_orig[i];
-            } else if (nlp_pd->slack_curr[j] > 0.0) {
-                yl[i] = nlp_pd->y_orig[i];
-                yl[i + nlp_i->m_orig] = nlp_pd->y_orig[i]; /* trailing part of the multipliers */
-                y[i] = nlp_pd->y_orig[i];
+            if (nlp_pd->sl_curr[i] > 0.0 && nlp_pd->su_curr[j] > 0.0) { /* all zero case */;
+            } else if (nlp_pd->sl_curr[i] > 0.0) {
+                yu[i] = nlp_pd->y_orig[i]; /* yl = 0 */
+                nlp_pd->y_asl[i] = yu[i];
+
+            } else if (nlp_pd->su_curr[j] > 0.0) {
+                yl[j] = nlp_pd->y_orig[i]; /* yu = 0 */ /* this goes at the end */
+                nlp_pd->y_asl[i] = -yl[i];
+
             } else {
                 fprintf(stderr, "The slacks cannot be both 0 at constraint %d\n", i);
                 exit(-1);
             }
-        } else { /*leq and equality */
-            /* very sloppy */
-            yl[i] = nlp_pd->y_orig[i];
-            /*yu[i] = nlp_pd->y_orig[i];*/
+            /* we can update z_s here too! */
+            continue;
+        } else { /*geq and equality */
+            yu[i] = nlp_pd->y_orig[i]; /* very sloppy */
+            nlp_pd->y_asl[i] = yu[i];
         }
-        y[i] = yl[i] - yu[i];
+        y[i] = yu[i] - yl[i]; /* the correct multiplier for hessian calculation */
     }
-
     nlp_pd->y = y;
     nlp_pd->yu = yu;
     nlp_pd->yl = yl;
-
 }
 
 void get_multz0(const nlp_info *nlp_i, nlp_pd *nlp_pd1, double *zl0, double *zu0) {
@@ -77,9 +86,8 @@ void get_multz0(const nlp_info *nlp_i, nlp_pd *nlp_pd1, double *zl0, double *zu0
     for (i = nlp_i->n_orig; i < n; i++) {
         j = nlp_i->con_slack[i - nlp_i->n_orig];
         printf("j \t %d\n", j);
-        zl[i] = nlp_pd1->yl[j];
-        zu[i] = 0;
-        z[i] = zl[i] + zu[i];
+        zl[i] = nlp_pd1->y[j];
+        z[i] = -zl[i];  /* only lower bnds */
     }
 
     myfile = fopen("z_mult.txt", "w");
