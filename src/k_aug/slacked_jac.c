@@ -180,13 +180,6 @@ void sl_grad_times_y(const nlp_info *nlp_i, int *cptr, int *rw, double *a, doubl
     FILE *myf;
     m = nlp_i->m_orig + nlp_i->m_glu;
     dcy = nlp_pd1->grad_c_y;
-    myf = fopen("multipliers_blyat.txt", "w");
-    for (j = 0; j < m; j++) {
-        printf("y[%d]\t=\t%f\n", j, y[j]);
-        fprintf(myf, "%f\n", j, y[j]);
-    }
-    fclose(myf);
-
 
     for (j = 0; j < m; j++) { /* access by column */
         for (i = cptr[j]; i < cptr[j + 1]; i++) {

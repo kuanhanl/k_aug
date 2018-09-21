@@ -137,7 +137,7 @@ static keyword keywds[] = {
 };
 
 static char _solname[] = {"K_AUG"};
-static char banner[] = {"[K_AUG] written by D.T. @2018\n\n"};
+static char banner[] = {"[K_AUG 克用] written by D.T. @2018\n\n"};
 static char _k_[] = {"k_aug"};
 static char _k_o_[] = {"k_aug_options"};
 static Option_Info Oinfo;
@@ -662,8 +662,11 @@ int main(int argc, char **argv){
     }
 
     for (i = 0; i < nlp_i.n_orig; i++) { nlp_pd.x_orig[i] = nlp_pd.x_0[i]; }
-    for (i = 0; i < nlp_i.m_orig; i++) { nlp_pd.y_orig[i] = nlp_pd.y_0[i]; }
-
+    f = fopen("y_orig.txt", "w");
+    for (i = 0; i < nlp_i.m_orig; i++) {
+        nlp_pd.y_orig[i] = nlp_pd.y_0[i];
+        fprintf(f, "%f\n", nlp_pd.y_orig[i]);}
+    fclose(f);
     for (i = 0; i < nlp_i.n_orig; i++) { ; }
     for (i = 0; i < nlp_i.m_orig; i++) { ; }
 
