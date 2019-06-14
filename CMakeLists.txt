@@ -66,7 +66,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/k_aug/main_.c
         ${PROJECT_SOURCE_DIR}/src/interfaces/hsl/ma57_driver.c
         ${PROJECT_SOURCE_DIR}/src/matrix/dsyev_driver.c
         ${PROJECT_SOURCE_DIR}/src/matrix/dpotri_driver.c
-        )
+        src/matrix/dgesdd_driver.c src/matrix/dgesdd_driver.h)
 
 
     #if (USE_MC30)

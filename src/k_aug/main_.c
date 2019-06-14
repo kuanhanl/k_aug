@@ -43,7 +43,7 @@
 #include "mu_adjust_primal.h"
 #include "../matrix/dsyev_driver.h"
 #include "../matrix/dpotri_driver.h"
-
+#include "../matrix/dgesdd_driver.h"
 
 #include "k_aug_data.h"
 #include "../../config_kaug.h"
@@ -645,6 +645,7 @@ int main(int argc, char **argv){
             }
             fclose(somefile);
         }
+        dgesdd_driver(n_var, n_con, Aij, nzc, Arow, Acol);
 
         solve_result_num = 0;
         write_sol(ter_msg, x, lambda, &Oinfo);
