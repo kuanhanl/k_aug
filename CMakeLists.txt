@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(k_aug C)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "-g -Wall -ansi -pedantic-errors -Wall -W")
+set(CMAKE_C_FLAGS "-g")
 message(STATUS "\nWelcome to k_aug.\n\n I hope you have already compiled the dependencies.\n\n")
 message(STATUS "\nIf you want to have all the debug files generated each time, set PRINT_VERBOSE to 0 in this file.\n")
 #set( PROJECT_LINK_LIBS amplsolver.a )
@@ -39,13 +39,14 @@ include_directories(${PROJECT_BINARY_DIR})
 
 # coinor stuff
 # PLEASE MAKE SURE THIS ARE IN THE CORRECT DIRECTORY
-include_directories(/usr/local/include/coin-or/asl)
-find_library(COINASL coinasl HINTS /usr/local/lib)
-find_library(COINHSL coinhsl HINTS /usr/local/lib)
-find_library(COINMETIS coinmetis HINTS /usr/local/lib)
+include_directories(/mingw64/include/coin-or/asl)
+find_library(COINASL NAMES libcoinasl.dll.a HINTS /mingw64/lib)
+find_library(COINHSL NAMES libcoinhsl.dll.a HINTS /mingw64/lib)
+find_library(COINMETIS NAMES libmetis.dll.a HINTS /mingw64/lib)
 # openblas/blas stuff
-find_library(BLAS NAMES blas openblas HINTS /usr/lib /usr/local/lib)
-find_library(LAPACK NAMES lapack openblas HINTS /usr/lib /usr/local/lib)
+find_library(BLAS NAMES libblas.dll.a openblas HINTS /usr/lib /usr/local/lib /mingw64/lib)
+#find_library(BLAS NAMES blas openblas)
+find_library(LAPACK NAMES liblapack.dll.a openblas HINTS /usr/lib /usr/local/lib /mingw64/lib)
 
 
 if (USE_MC30)
@@ -81,11 +82,11 @@ if (USE_MC30)
     target_link_libraries(k_aug mc30 ${COINMETIS} ${COINASL} ${COINHSL} ${BLAS} ${LAPACK} gfortran m)
     message("LINKING MC30 ${USE_MC30}")
 else(USE_MC30)
-    target_link_libraries(k_aug ${COINMETIS} ${COINASL} ${COINHSL} ${BLAS} ${LAPACK} gfortran m)
+	target_link_libraries(k_aug ${COINMETIS} ${COINASL} ${COINHSL} ${LAPACK} ${BLAS} gfortran m)
 endif(USE_MC30)
 
 
-target_link_libraries(dot_sens ${COINASL} ${BLAS})
+target_link_libraries(dot_sens ${COINASL} ${BLAS} gfortran m)
 
 
 set_target_properties( k_aug
