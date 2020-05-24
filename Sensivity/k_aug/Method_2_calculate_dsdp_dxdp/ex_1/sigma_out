@@ -1,0 +1,6 @@
+i	z_L[i]	z_U[i]	LUv[2*i]	x[i]	LUv[2*i+1]		sigma[i]
+0	0	0	-Infinity	0.6326530612244898	Infinity		0.000000e+00  
+1	0	0	-Infinity	1	Infinity		0.000000e+00  
+2	0	0	-Infinity	0.3877551020408163	Infinity		0.000000e+00  
+3	0	0	-Infinity	0.020408163265306242	Infinity		0.000000e+00  
+4	0	0	-Infinity	5	Infinity		0.000000e+00  
